@@ -1,4 +1,4 @@
-### What's this?
+# What's this?
 
 This is a simple imageboard, basically a rudimentary instagram.
 
