@@ -118,7 +118,9 @@ function getNumberOfImages() {
 function addImage(imageInfo, url) {
     const { description, title, username, tags } = imageInfo;
 
-    const awsUrl = require('../secrets').s3Url + url;
+    const awsUrl =
+        (process.env == 'production' ? process.env : require('../secrets'))
+            .AWS_URL + url;
 
     return db
         .query(
