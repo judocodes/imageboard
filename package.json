@@ -1,0 +1,25 @@
+{
+    "name": "imageboard",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "build:css": "tailwindcss build src/tailwind.css -o public/css/tailwind.css --watch",
+        "dev": "nodemon index.js",
+        "start": "node index.js"
+    },
+    "engines": {
+        "node": "12.18.4"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "autoprefixer": "^10.0.0",
+        "aws-sdk": "^2.476.0",
+        "express": "^4.14.0",
+        "multer": "^1.2.0",
+        "spiced-pg": "^1.0.0",
+        "tailwindcss": "^1.8.10",
+        "uid-safe": "^2.1.4"
+    }
+}

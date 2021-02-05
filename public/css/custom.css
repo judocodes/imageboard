@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@200&display=swap');
+
+body {
+    font-family: 'Montserrat', sans-serif;
+}
+
+#image-board {
+    display: grid;
+    max-width: 80%;
+    grid-template-rows: 21rem 21rem;
+    grid-template-columns: repeat(4, minmax(10rem, 1fr));
+    grid-auto-rows: 21rem;
+    justify-items: center;
+    column-gap: 30px;
+    row-gap: 20px;
+}
+
+#more-btn {
+    transform: rotate(12deg);
+}
+
+#more-btn:hover {
+    animation: moreButton 500ms ease-in forwards;
+}
+
+@keyframes moreButton {
+    0% {
+        transform: rotate(12deg);
+        box-shadow: none;
+    }
+
+    100% {
+        border-radius: 12px;
+        transform: rotate(12deg) scale(1.2);
+        box-shadow: 0 5px 8px 1px rgba(0, 0, 0, 0.2);
+    }
+}
+
+#pop-up {
+    animation: movePopUp 1s forwards ease-out;
+}
+
+@keyframes movePopUp {
+    0% {
+        transform: translateY(150%);
+    }
+
+    100% {
+        transform: translateY(0%);
+    }
+}
+
+#funky-chicken {
+    position: fixed;
+    top: 0;
+    right: 3rem;
+}
+
+#close-button {
+    position: absolute;
+    top: 0;
+    z-index: 10;
+    right: 0;
+}
+
+#image-only {
+    max-height: 90%;
+    max-width: 90%;
+}
+
+#custom-animate:hover {
+    animation-name: pullCurtain;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+}
+
+#custom-animate:hover + div {
+    animation-name: pullCurtain;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+}
+
+@keyframes pullCurtain {
+    0% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}

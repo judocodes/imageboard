@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+
+.input-field {
+    @apply border-l-8 border-b-4 border-r border-t shadow-xl py-2 pl-3 outline-none text-lg rounded-tl-lg rounded-br-lg rounded-tr-sm;
+}
+
+.btn {
+    @apply shadow-xl outline-none text-lg border-l-8 border-r border-t border-b-4 py-2 pl-3 pr-2 cursor-pointer rounded-tl-lg rounded-br-lg;
+}
+
+.btn:hover {
+    @apply shadow bg-gray-100;
+}
+
+.overlay {
+    @apply fixed bg-black bg-opacity-75 top-0 left-0 w-full h-full z-20 flex justify-center items-center;
+}
+
+.modal-parent {
+    @apply bg-white h-4/5 w-1/3 border-r-4 border-b-4 border-red-400 overflow-hidden rounded-lg mx-2;
+}
+
+.modal-child {
+    @apply w-full h-full border-t-2 border-l-2 border-yellow-400 flex flex-col items-center relative overflow-hidden justify-between px-8;
+}
+
+.comment {
+    @apply border-2 py-2 px-2 border-purple-400 rounded-lg;
+}
+
+.comment:hover {
+    @apply text-white bg-purple-400;
+}
+
+.extra-comment {
+    @apply border-2 py-1 px-2 border-purple-400 rounded-lg;
+}
+
+.extra-comment-input {
+    @apply text-sm w-full border-b outline-none border-purple-400;
+}
+
+.image {
+    @apply block w-full h-64 overflow-hidden shadow-lg border-l-4 border-b-4 rounded-tl-md rounded-br-md rounded-tr-sm;
+}
+
+.image:hover {
+    @apply shadow-none;
+}
+
+@tailwind utilities;
+
+@layer utilities {
+    .rotate-0 {
+        transform: rotate(0deg);
+    }
+    .rotate-2 {
+        transform: rotate(2deg);
+    }
+    .rotate-4 {
+        transform: rotate(4deg);
+    }
+    .rotate-7 {
+        transform: rotate(7deg);
+    }
+    .rotate-8 {
+        transform: rotate(8deg);
+    }
+    .rotate-12 {
+        transform: rotate(12deg);
+    }
+
+    .-rotate-1 {
+        transform: rotate(1deg);
+    }
+
+    .-rotate-3 {
+        transform: rotate(-3deg);
+    }
+
+    .-rotate-5 {
+        transform: rotate(-5deg);
+    }
+
+    .-rotate-8 {
+        transform: rotate(-8deg);
+    }
+    .-rotate-10 {
+        transform: rotate(-10deg);
+    }
+
+    .h-4\/5 {
+        height: 80%;
+    }
+
+    .w-72 {
+        width: 18rem;
+    }
+
+    .w-80 {
+        width: 20rem;
+    }
+
+    .h-72 {
+        height: 18rem;
+    }
+
+    .h-80 {
+        height: 20rem;
+    }
+}

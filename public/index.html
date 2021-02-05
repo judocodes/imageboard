@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My Imageboard</title>
+        <meta name="viewport" content="width=device-width,user-scalable=no" />
+        <link rel="stylesheet" href="/css/tailwind.css" />
+        <link rel="stylesheet" href="/css/custom.css" />
+    </head>
+    <body class="bg-white text-center py-8 px-12">
+        <!-- Header -->
+        <nav>
+            <h3 class="text-4xl mb-4 tracking-wider mx-auto flex items-center">
+                <svg
+                    class="h-12 w-12 text-gray-600 mr-6"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width=".8"
+                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                    />
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width=".8"
+                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                </svg>
+                <div>
+                    <span class="text-purple-400 font-light">Disco</span
+                    ><span class="text-gray-600 font-extrabold">board</span>
+                </div>
+            </h3>
+        </nav>
+        <!-- Vue Instance -->
+        <section class="border-t-2 pt-2 w-full" id="app">
+            <!-- Add Tags Pop-Up -->
+            <div v-if="openTags" class="overlay" @click="openTags = false">
+                <form
+                    @click="$event.stopPropagation()"
+                    class="flex flex-col justify-between items-center px-24 py-12 w-auto h-auto bg-white rounded border-4 border-red-400"
+                >
+                    <div>
+                        <h3 class="text-xl font-semibold">Add Some Tags...</h3>
+                        <p class="font-light text-sm mb-6">
+                            Up to <span class="text-red-400">three</span>
+                            tags will be registered.
+                        </p>
+                        <input
+                            type="text"
+                            class="input-field border-red-400 mb-8"
+                            v-model="tags"
+                            placeholder="#80s #disco #afro"
+                        />
+                    </div>
+                    <span v-if="tagsWarning" class="text-red-400 text-sm mt-2"
+                        >Special signs except '#' will be ignored.</span
+                    >
+                    <span v-else class="mt-2 text-sm text-gray-800">
+                        Like so: #disco #earthwindfire ...
+                    </span>
+                    <button
+                        class="btn mt-4 hover:text-red-400 hover:border-red-400"
+                        @click.prevent="uploadImage"
+                    >
+                        Upload
+                    </button>
+                </form>
+            </div>
+            <!-- Enable Bug -->
+            <button
+                style="opacity: 0.12"
+                class="absolute text-xs cursor-pointer hover:text-pink-500 bottom-0 right-0 pr-12 z-30"
+                @click="bugOn = !bugOn"
+            >
+                Toggle Bug
+            </button>
+
+            <!-- Funky Chicken -->
+            <button
+                style="opacity: 0.12"
+                class="absolute text-xs cursor-pointer hover:text-pink-500 right-0 pr-12 z-30"
+                @click="showMeTheChicken"
+            >
+                Toggle Funky Chicken
+            </button>
+            <img
+                id="funky-chicken"
+                v-if="funkyChicken"
+                class="w-24 h-24"
+                src="./images/funky_chicken.png"
+                :class="funkyPage ? funkyPageStyles : chickenStyles"
+                alt=""
+            />
+            <!-- Funky Page Mode -->
+            <button
+                style="opacity: 0.12"
+                class="absolute text-xs cursor-pointer hover:text-pink-500 top-0 left-0 pl-12 z-30"
+                @click="getFunky"
+            >
+                Toggle Funky Page Mode
+            </button>
+            <audio id="audio" src="./audio/bw.mp3" type="audio/mp3"></audio>
+            <!-- Pop Up Modal -->
+            <img-modal
+                @closemodal="closeModal"
+                @previouspicture="previousPicture"
+                @nextpicture="nextPicture"
+                @deleteimage="deleteImage"
+                @tagsearch="filterByTags"
+                v-if="imageId"
+                :image-id="imageId"
+                :lowest-image-id="lowestImageId"
+                :first-image-on-page-id="firstImageOnPageId"
+            ></img-modal>
+
+            <!-- unseenUpdates Pop-Up -->
+            <div
+                v-if="unseenUpdates"
+                id="pop-up"
+                class="px-4 py-4 fixed bottom-0 mb-3 right-0 mr-3 border-green-400 bg-green-400 border rounded-lg z-30"
+            >
+                <span class="text-white"
+                    >You might be missing some images!</span
+                >
+                <a
+                    class="ml-3 py-2 px-2 border-white shadow-none bg-green-400 text-white border rounded-lg cursor-pointer hover:bg-green-300"
+                    @click.prevent="refreshImages"
+                    >Click here to refresh.</a
+                >
+            </div>
+
+            <!-- Filter by Tags -->
+            <div class="fixed bottom-0 left-0 ml-8 mb-8 z-10">
+                <form>
+                    <input
+                        type="text"
+                        class="input-field focus:shadow-2xl transform focus:scale-105"
+                        :class="{'border-red-400': findTags}"
+                        v-model="findTags"
+                        placeholder="Filter By Tag..."
+                    />
+                    <button
+                        v-if="findTags"
+                        type="submit"
+                        class="hidden"
+                        @click.prevent="filterByTags"
+                    >
+                        Go!
+                    </button>
+                </form>
+            </div>
+
+            <!-- UPLOAD IMAGE FORM -->
+            <form
+                id="upload"
+                class="relative px-24 flex justify-between z-10 pt-8"
+            >
+                <span
+                    v-if="!uploadPermitted"
+                    class="text-red-600 absolute top-0"
+                    >Required Fields: Title, Creator and Image-File.
+                </span>
+                <input
+                    type="text"
+                    class="w-1/6 input-field z-10 border-gray-400"
+                    :class="[{'border-orange-400': title}, {'text-orange-400': title}, {'border-red-700': !uploadPermitted}]"
+                    autocomplete="off"
+                    maxlength="30"
+                    v-model="title"
+                    name="title"
+                    placeholder="Title..."
+                />
+                <input
+                    type="text"
+                    maxlength="140"
+                    :class="[{'border-blue-400': description}, {'text-blue-400': description}]"
+                    class="w-1/6 input-field z-10 border-gray-400"
+                    autocomplete="off"
+                    name="description"
+                    v-model="description"
+                    placeholder="Description..."
+                />
+                <input
+                    type="text"
+                    maxlength="30"
+                    :class="[{'border-yellow-400': username}, {'text-yellow-400': username},{'border-red-700': !uploadPermitted}]"
+                    class="w-1/6 input-field z-10 border-gray-400"
+                    autocomplete="off"
+                    name="username"
+                    v-model="username"
+                    placeholder="User..."
+                />
+                <label
+                    class="w-1/6 btn border-gray-400"
+                    :class="[{'text-green-300': imageLoaded}, {'border-green-300': imageLoaded},{'border-red-700': !uploadPermitted}, {'text-red-700': !uploadPermitted}]"
+                    for="file"
+                >
+                    <input
+                        type="file"
+                        class="w-1/6 hidden"
+                        id="file"
+                        name="file"
+                        accept="image/*"
+                        @change="findImage"
+                    />
+                    Choose Image ...</label
+                >
+
+                <a
+                    class="w-1/6 btn border-gray-400"
+                    :class="[{'border-purple-400': imageUpload}, {'text-purple-400': imageUpload}]"
+                    @click.prevent="submitTags"
+                    >... and Upload.</a
+                >
+            </form>
+
+            <!-- Actual Image Board -->
+            <main id="image-board" class="mx-auto mb-64 mt-24 relative">
+                <!-- :class="styleMe()" -->
+                <!-- Vue Loop -->
+                <a
+                    class="image"
+                    :class="funkyPage ? funkyPageStyles : (bugOn ? styleMe() : image.style)"
+                    v-for="image in images"
+                    :href="'#' + image.id"
+                    :key="image.id"
+                >
+                    <div class="relative w-full h-full">
+                        <div class="absolute w-full h-full z-0">
+                            <img
+                                class="object-center object-cover w-full h-full"
+                                :src="image.url"
+                                alt="Loading..."
+                            />
+                        </div>
+                        <div
+                            id="custom-animate"
+                            class="absolute w-full h-full bg-black top-0 left-0 bg-opacity-25 z-10"
+                        ></div>
+                        <div class="absolute w-full h-full left-0 top-0">
+                            <p
+                                class="text-white text-lg text-right font-bold absolute top-0 right-0 z-10 pr-2"
+                            >
+                                {{image.username}}
+                            </p>
+                            <p
+                                class="text-white text-lg text-left font-bold absolute bottom-0 left-0 z-10 pl-2"
+                            >
+                                {{image.title}}
+                            </p>
+                        </div>
+                    </div>
+                </a>
+                <!-- Get More Images -->
+                <div
+                    id="btn-div"
+                    class="mt-6 w-auto h-20 col-start-2 col-span-2 flex justify-center items-center pt-5 relative"
+                >
+                    <a
+                        v-if="moreImagesAvailable"
+                        id="more-btn"
+                        class="border-purple-400 btn shadow-none h-12 self-start rounded-br-none"
+                        @click="getMoreImages(lastImageOnPageId)"
+                    >
+                        <div class="origin-center text-purple-400">
+                            Get More Images
+                        </div>
+                    </a>
+                </div>
+            </main>
+        </section>
+
+        <!-- COMPONENTS  -->
+
+        <script id="img-modal" type="text/x-template">
+            <div @click="closeModal" class="overlay">
+                <!-- Image Only Pop-Up -->
+            <div v-if="imageOnly" class="overlay z-40 flex flex-col justify-center items-center">
+                <img :src="image.url" id="image-only" alt="Loading...">
+                <button @click.stop="imageOnly = false" class="btn border-red-400 bg-white mt-4 hover:bg-red-100">Close</button>
+            </div>
+            <!-- Delete Image Pop-Up -->
+            <div
+                v-if="promptToDelete"
+                class="overlay z-40"
+                @click="promptToDelete = false"
+            >
+                <div
+                    class="bg-white rounded py-6 px-12 border-4 border-red-400"
+                >
+                    <h3 class="text-xl font-semibold mb-2">Are you sure?</h3>
+                    <p class="font-light">
+                        Nobody else will be able to see the picture.
+                    </p>
+                    <div class="mt-8">
+                        <button
+                            @click="deleteImage"
+                            class="btn border-red-400 mx-2 hover:bg-red-100"
+                        >
+                            Yes, Delete
+                        </button>
+                        <button
+                            @click="promptToDelete = false"
+                            class="btn border-red-400 mx-2 hover:bg-red-100"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+                <!-- Left Modal -->
+                <div @click="$event.stopPropagation()" class="modal-parent relative">
+                    <div @click="closeModal" id="close-button" >
+                        <a class="cursor-pointer px-4 pt-2 pb-1 shadow bg-red-400 text-white rounded-l-lg">Close</a>
+                    </div>
+                    <div class="modal-child">
+                        <div class="flex-1 w-full flex flex-col items-center relative">
+                            <div class="pt-8 pb-4 w-full">
+                                <h3 class="text-2xl font-semibold break-words">{{ image.title }}</h3>
+                            </div>
+                            <!-- Chevrons and Image -->
+                            <div class="w-auto h-auto relative px-16">
+                                <!-- Chevrons -->
+                                <a v-if="image.id < firstImageOnPageId" @click="previousPicture"><svg class="absolute w-12 h-12 left-0 bottom-0 text-blue-400 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></a>
+                                <a v-if="image.id > lowestImageId" @click="nextPicture"><svg class="absolute w-12 h-12 right-0 text-blue-400 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></a>
+                                <!-- Deleting -->
+                                <a @click="promptToDelete = true" class="absolute bottom-0 right-0 pb-2 pr-4"><svg class="w-8 h-8 hover:text-red-400 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></a>
+                                <!-- Image -->
+                                <img @click.prevent="imageOnly = true" class="w-80 h-80 object-cover shadow-lg" :src="image.url" alt="Loading...">
+                            </div>
+                            <p class="w-full mt-4 break-words">{{image.description === 'null' ? '' : image.description}}</p>
+                            <!-- Delete Button -->
+
+                        </div>
+                        <!-- Add Comment Form -->
+                        <form class="pb-16 w-full">
+                            <hr class="w-full my-4">
+                            <h3 class="w-full text-left pl-2 mb-2 text-gray-600">Add a Comment...</h3>
+                            <input v-model="newComment.comment" class="input-field block w-full mb-2 mt-1 text-sm shadow-md" type="text" maxlength="90" placeholder="Your Comment...">
+                            <div class="flex">
+                                <input class="input-field block shadow-md mr-1 text-sm flex-1" type="text" maxlength="30" v-model="newComment.username" placeholder="Username...">
+                                <button @click="postComment" type="submit" class="btn shadow-md text-sm">Submit</button>
+                            </div>
+                        </form>
+                        <div class="absolute bottom-0 pb-3">
+                            <p class="text-xs">Uploaded by {{image.username}} on {{image.created}} </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right Modal -->
+                <div  @click="$event.stopPropagation()" class="modal-parent opacity-90">
+                    <div class="modal-child overflow-y-visible">
+                        <!-- Show tags -->
+                        <div class="pt-8">
+                            <span v-if="image.tags" v-for="tag in image.tags" class="text-xl font-bold text-purple-400 mr-2 cursor-pointer" @click="findByTag(tag.tag)">{{tag.tag}}   </span>
+                        </div>
+                        <h3 class="text-2xl pt-4 pb-4 font-semibold" >All Comments...</h3>
+                        <div class="flex flex-col flex-1 w-full">
+                            <!-- Comment Output -->
+                            <div v-for="(comment, index) in image.comments" class="mb-2 w-full" :key="comment.id">
+                                <div class="comment cursor-pointer" @click="clickedCommentId = clickedCommentId === index ? '' : index">
+                                        <p class="w-full text-left break-words text-purple-700">{{comment.comment}}</p>
+                                </div>
+                                <span class="block text-sm w-full text-left pl-3 text-purple-500">
+                                    <template v-if="comment.username">by "{{comment.username}}"</template>
+                                    <template v-else>by anonymous</template>
+                                </span>
+                                <form v-if="index === clickedCommentId" class="w-2/3 float-right flex mb-4">
+                                    <div>
+                                        <input maxlength="90" class="extra-comment-input" placeholder="Comment..." type="text" v-model="extraComment.comment">
+                                        <input maxlength="30" class="extra-comment-input" placeholder="Username..." type="text" v-model="extraComment.username">
+                                    </div>
+                                    <div class="h-auto flex flex-col justify-end ml-2">
+                                        <button class="block text-xs text-white bg-purple-400 rounded px-1 py-1" @click="postExtraComment(comment.id, index)" type="submit">Submit</button>
+                                    </div>
+                                </form>
+                                <div v-if="comment.extraComments.length > 0" v-for="extraComment in comment.extraComments">
+                                    <div class="w-2/3 float-right mb-2">
+                                        <div class="extra-comment w-full">
+                                            <p class="w-full text-left break-words text-purple-700">
+                                                {{extraComment.comment}}
+                                            </p>
+                                        </div>
+                                        <span class="block text-sm w-full text-left pl-3 text-purple-500">
+                                            <template v-if="extraComment.username">by "{{extraComment.username}}"</template>
+                                            <template v-else>by anonymous</template>
+                                        </span>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.0/moment.min.js"
+            integrity="sha512-Izh34nqeeR7/nwthfeE0SI3c8uhFSnqxV0sI9TvTcXiFJkMd6fB644O64BRq2P/LA/+7eRvCw4GmLsXksyTHBg=="
+            crossorigin="anonymous"
+        ></script>
+        <script src="/js/vue.js"></script>
+        <script src="/js/axios.min.js"></script>
+        <script src="/js/script.js"></script>
+    </body>
+</html>
