@@ -13,8 +13,9 @@ The imageboard uses:
 - AWS S3 to store and load the images.
 - Postgres to store and load comments, image links, usernames and all the other data.
 - Heroku to host the application (Note: Heroku uses „Dynamos“, they freeze if they haven’t been accessed in some time, so it might take a while to load the site).
+- Tailwindcss for styling
+- NodeJS & Express for serving the app and connecting to the DB
 
 ### Easter Eggs
 
 There’s three hidden easter eggs on the site. Can you find them?
-
