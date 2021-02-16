@@ -39,7 +39,11 @@
         <!-- Vue Instance -->
         <section class="border-t-2 pt-2 w-full" id="app">
             <!-- Add Tags Pop-Up -->
-            <div v-if="openTags" class="overlay" @click="openTags = false">
+            <div
+                v-if="openTags"
+                class="overlay fixed flex justify-center items-center"
+                @click="openTags = false"
+            >
                 <form
                     @click="$event.stopPropagation()"
                     class="flex flex-col justify-between items-center px-24 py-12 w-auto h-auto bg-white rounded border-4 border-red-400"
@@ -284,7 +288,7 @@
         <script id="img-modal" type="text/x-template">
             <div @click="closeModal" class="overlay absolute lg:fixed flex flex-col lg:flex-row justify-center items-center lg:h-full">
                 <!-- Image Only Pop-Up -->
-            <div v-if="imageOnly" class="overlay z-40 flex flex-col justify-center items-center">
+            <div v-if="imageOnly" class="overlay fixed z-40 flex flex-col justify-center items-center">
                 <img :src="image.url" id="image-only" alt="Loading...">
                 <button @click.stop="imageOnly = false" class="btn border-red-400 bg-white mt-4 hover:bg-red-100">Close</button>
             </div>
