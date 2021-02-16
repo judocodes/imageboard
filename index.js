@@ -1,4 +1,6 @@
+require('dotenv').config();
 const express = require('express');
+
 const app = express();
 const uploader = require('./utils/uploader');
 const {
